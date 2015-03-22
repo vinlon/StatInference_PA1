@@ -1,0 +1,59 @@
+---
+title: "Exponential Distribution Investigation"
+author: "liwenlong"
+output: pdf_document
+---
+
+#Overview
+In this project I will investigate the exponential distribution in R and compare it with the Central Limit Theorem. The exponential distribution is simulated in R with rexp(n, lambda) where lambda = 0.2. I will investigate the distribution of averages of 40 exponentials with a thousand simulations.
+```{r setConst}
+lamada <- .2
+sample_count <- 40
+sim_count <- 1000
+```
+#Simulations 
+Simulate random exponential distribution data,set seed to make the data reproducable. 
+```{r simulatedata}
+set.seed(521) #521 means "I love you! :) "
+expdata <- rexp(sample_count*sim_count,rate = lamada)
+#Store the 1000 simulations into matrix. 
+exp_matrix <- matrix(expdata,sim_count,sample_count,byrow = T)
+sampleMean <- apply(exp_matrix,1,mean)
+```
+## Mean and Variance of the sample (Compare with the Theoretical metrics)
+```{r meanAndVar,fig.width=4,fig.height=4}
+c(mean(sampleMean),var(sampleMean)) #Mean and Variance of Sample
+c(1/lamada,(1/lamada)^2/sample_count) #Theoretical Mean and Variance
+
+hist(sampleMean,20,prob = T, cex.main = .8,cex.lab=.8)
+lines(density(sampleMean),col = "red", lwd = 2,lty = "dotted")
+abline(v = 1/lamada,col = "red", lwd = 2)
+```
+
+- The mean of the Sample **[`r mean(sampleMean)`]** is close to the Theoretical Mean 1/lamada**[`r 1/lamada`]**.  
+- The variance of the Sample **[`r var(sampleMean)`]** is also close to the Theoretical variance s^2/n **[`r (1/lamada)^2/sample_count`]** 
+
+##Distribution
+- Plot the distribution of the sample
+```{r sampleDist,fig.width=4,fig.height=4}
+hist(sampleMean,20,prob = T, cex.main = .8,cex.lab=.8)
+lines(density(sampleMean),col = "red", lwd = 2,lty = "dotted")
+abline(v = 1/lamada,col = "red", lwd = 2) #theoretical mean 
+#add the normal distribution line.
+x<-seq(0,8,length=200)
+y<-dnorm(x,mean=1/lamada, sd=1/lamada/sqrt(sample_count))
+lines(x = x,y = y, col="green",lwd = 2)  #normal distribution line
+```
+
+- From the previous section , we've already known that the sample mean and variance is quite close to the theoretical mean and variance. 
+- And from the above figure we can found that the distribution of the sample is quite similar with the normal distirubtion with mean =1/lamada and sd = 1/lamada/sqrt(n) (the theoretical mean and sd)
+- So, wen can say that the distribution is approximately normal.
+
+#SessionInfo
+```{r sessionInfo}
+sessionInfo()
+```
+
+
+
+

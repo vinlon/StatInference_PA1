@@ -1,0 +1,66 @@
+---
+title: "ToothGrowth Data Analysis"
+author: "liwenlong"
+output: pdf_document
+---
+
+#Overview
+In this report, I will perform some basic explortary data analyses on the ToothGrowth data, And compare tooth growth by supp and dose.
+```{r lib, message=FALSE}
+library(dplyr)
+library(datasets)
+library(ggplot2)
+```
+
+#Read data
+- View the structure of the data
+```{r readData}
+#convert the dose from num to factor
+ToothGrowth$dose <-as.factor(ToothGrowth$dose)
+str(ToothGrowth)
+table(ToothGrowth$supp,ToothGrowth$dose)
+```
+We have sixty records group by supp(QJ,VC) and dose (0.5,1,2), and for each group there is 10 records.
+
+- Explor the data by dose and supp
+```{r dataExplor,fig.width=3,fig.height=3}
+#summary by supp
+ggplot(ToothGrowth,aes(x=supp,y=len))+
+        geom_boxplot(fill="grey")+
+        ggtitle("Tooth Length by Supp")
+
+#summary by dose
+ggplot(ToothGrowth,aes(x=dose,y=len))+
+        geom_boxplot(fill="grey")+
+        ggtitle("Tooth Length by Dose")
+```
+
+# Tooth length compare by Supp
+- Assumption is there is no difference between two Supp group(They have the same mean value).
+- I didn't read the description of this dataset, but from the definition of the problem, it doesn't tell us the data is paired or they have the same variance. So i will set {paired = F,var.equal = F}
+```{r bySupp}
+testBySupp <- t.test(subset(ToothGrowth$len,ToothGrowth$supp=="OJ"),
+       subset(ToothGrowth$len,ToothGrowth$supp=="VC"),
+       var.equal = F,
+       paired = F)
+c(testBySupp$conf,testBySupp$p.value)
+```
+- The 95 percent confdence interval[**`r testBySupp$conf.int`**] contains 0. And the P-Value [**`r testBySupp$p.value`**] is greater than 0.05.
+- So we do not have conclusive evidence to show that OJ has a better effect on tooth growth and failed to reject the null hypothesis.
+- Actually I also tried other params for the test,setting {var.equal=T} doesn't make any difference, while setting {paired = T} will lead to a totally different result). 
+
+# Tooth length compare by Dose
+- The Null Hypothesis is the mean value are the same for different dose group.
+- User {paired = F,var.equal = F} for the test, same reason as above. 
+```{r by Dose}
+test1<-t.test(subset(ToothGrowth$len,ToothGrowth$dose==1),
+       subset(ToothGrowth$len,ToothGrowth$dose==.5), 
+       var.equal = F,paired = T)
+test2<-t.test(subset(ToothGrowth$len,ToothGrowth$dose==2),
+       subset(ToothGrowth$len,ToothGrowth$dose==1),
+       var.equal = F,paired = T)
+c(test1$conf,test1$p.value)
+c(test2$conf,test2$p.value)
+```
+- From both tests, the 95-percent-interval is above 0 with p-value < .05 which provides statistical evidence that higher Dose DOES have positive impact on tooth length.
+- Setting [var.equal = T] shows the same result, while setting {paired = T} leads to a slightly different result, but the conclusion is still the same. 
